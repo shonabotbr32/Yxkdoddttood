@@ -4,43 +4,51 @@ import re
 import random
 import aiohttp
 import yt_dlp
+from typing import Union
 from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
 from py_yt import VideosSearch
-from typing import Union
+from SONALI_MUSIC.utils.database import is_on_off
+from SONALI_MUSIC.utils.formatters import time_to_seconds
 from config import YT_API_KEY, YTPROXY_URL as YTPROXY
 
+# SAFE FOLDERS
+os.makedirs("downloads", exist_ok=True)
+os.makedirs("cookies", exist_ok=True)
 
-def extract_video_id(url: str):
-    match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11})", url)
+
+def extract_video_id(link: str):
+    pattern = r"(?:v=|\/)([0-9A-Za-z_-]{11})"
+    match = re.search(pattern, link)
     return match.group(1) if match else None
 
 
 def cookie_txt_file():
-    cookie_dir = f"{os.getcwd()}/cookies"
-    if not os.path.exists(cookie_dir):
+    cookie_dir = os.path.join(os.getcwd(), "cookies")
+    files = [f for f in os.listdir(cookie_dir) if f.endswith(".txt")]
+    if not files:
         return None
-    cookies = [f for f in os.listdir(cookie_dir) if f.endswith(".txt")]
-    if not cookies:
-        return None
-    return os.path.join(cookie_dir, random.choice(cookies))
+    return os.path.join(cookie_dir, random.choice(files))
 
 
 async def download_song(link: str):
-    os.makedirs("downloads", exist_ok=True)
-
     video_id = extract_video_id(link)
     if not video_id:
         return None
 
+    download_folder = "downloads"
+
+    for ext in ["mp3", "m4a", "webm"]:
+        path = f"{download_folder}/{video_id}.{ext}"
+        if os.path.exists(path):
+            return path
+
     song_url = f"{YTPROXY}/song/{video_id}?api={YT_API_KEY}"
 
     async with aiohttp.ClientSession() as session:
-
         for _ in range(10):
 
             async with session.get(song_url) as response:
-
                 if response.status != 200:
                     await asyncio.sleep(3)
                     continue
@@ -52,9 +60,8 @@ async def download_song(link: str):
                     download_url = data.get("link")
                     break
 
-                elif status == "downloading":
+                if status == "downloading":
                     await asyncio.sleep(4)
-
                 else:
                     return None
 
@@ -62,43 +69,39 @@ async def download_song(link: str):
             return None
 
         ext = data.get("format", "mp3")
-        file_path = f"downloads/{video_id}.{ext}"
+        path = f"{download_folder}/{video_id}.{ext}"
 
-        async with session.get(download_url) as file_response:
-
-            with open(file_path, "wb") as f:
-
+        async with session.get(download_url) as file:
+            with open(path, "wb") as f:
                 while True:
-
-                    chunk = await file_response.content.read(8192)
-
+                    chunk = await file.content.read(8192)
                     if not chunk:
                         break
-
                     f.write(chunk)
 
-        return file_path
+        return path
 
 
 async def download_video(link: str):
-
-    os.makedirs("downloads", exist_ok=True)
-
     video_id = extract_video_id(link)
-
     if not video_id:
         return None
+
+    download_folder = "downloads"
+
+    for ext in ["mp4", "webm", "mkv"]:
+        path = f"{download_folder}/{video_id}.{ext}"
+        if os.path.exists(path):
+            return path
 
     video_url = f"{YTPROXY}/video/{video_id}?api={YT_API_KEY}"
 
     async with aiohttp.ClientSession() as session:
-
         for _ in range(10):
 
             async with session.get(video_url) as response:
-
                 if response.status != 200:
-                    await asyncio.sleep(3)
+                    await asyncio.sleep(4)
                     continue
 
                 data = await response.json()
@@ -108,9 +111,8 @@ async def download_video(link: str):
                     download_url = data.get("link")
                     break
 
-                elif status == "downloading":
-                    await asyncio.sleep(5)
-
+                if status == "downloading":
+                    await asyncio.sleep(6)
                 else:
                     return None
 
@@ -118,35 +120,28 @@ async def download_video(link: str):
             return None
 
         ext = data.get("format", "mp4")
-        file_path = f"downloads/{video_id}.{ext}"
+        path = f"{download_folder}/{video_id}.{ext}"
 
-        async with session.get(download_url) as file_response:
-
-            with open(file_path, "wb") as f:
-
+        async with session.get(download_url) as file:
+            with open(path, "wb") as f:
                 while True:
-
-                    chunk = await file_response.content.read(8192)
-
+                    chunk = await file.content.read(8192)
                     if not chunk:
                         break
-
                     f.write(chunk)
 
-        return file_path
+        return path
 
 
 class YouTubeAPI:
-
     def __init__(self):
+        self.base = "https://www.youtube.com/watch?v="
         self.regex = r"(?:youtube\.com|youtu\.be)"
 
     async def exists(self, link: str):
-
         return bool(re.search(self.regex, link))
 
     async def url(self, message: Message) -> Union[str, None]:
-
         messages = [message]
 
         if message.reply_to_message:
@@ -161,10 +156,7 @@ class YouTubeAPI:
                     if entity.type == MessageEntityType.URL:
 
                         text = msg.text or msg.caption
-
-                        return text[
-                            entity.offset : entity.offset + entity.length
-                        ]
+                        return text[entity.offset : entity.offset + entity.length]
 
         return None
 
@@ -175,37 +167,32 @@ class YouTubeAPI:
         data = (await results.next())["result"][0]
 
         title = data["title"]
-        vidid = data["id"]
         duration = data["duration"]
+        vidid = data["id"]
         thumb = data["thumbnails"][0]["url"].split("?")[0]
         yturl = data["link"]
 
-        track_details = {
+        return {
             "title": title,
             "link": yturl,
             "vidid": vidid,
             "duration_min": duration,
             "thumb": thumb,
-        }
-
-        return track_details, vidid
+        }, vidid
 
     async def video(self, link: str):
 
         try:
-
             file = await download_video(link)
-
             if file:
                 return 1, file
-
         except:
             pass
 
         cookie = cookie_txt_file()
 
         if not cookie:
-            return 0, "No cookies found"
+            return 0, "No cookies found."
 
         proc = await asyncio.create_subprocess_exec(
             "yt-dlp",
@@ -229,15 +216,9 @@ class YouTubeAPI:
     async def download(self, link: str, songaudio=False, songvideo=False, video=False):
 
         if songaudio or songvideo:
-
-            file = await download_song(link)
-
-            return file
+            return await download_song(link)
 
         if video:
-
-            file = await download_video(link)
-
-            return file
+            return await download_video(link)
 
         return None
