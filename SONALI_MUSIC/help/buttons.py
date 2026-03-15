@@ -48,7 +48,7 @@ class BUTTONS(object):
     
     PBUTTON = [
         [
-            InlineKeyboardButton("˹ ᴄσηᴛᴧᴄᴛ ˼", url="https://t.me/Theshonaqueen"),
+            InlineKeyboardButton("˹ ᴄσηᴛᴧᴄᴛ ˼", url="https://t.me/shona_bots"),
             InlineKeyboardButton("⌯ ʙᴧᴄᴋ ⌯", callback_data="MAIN_CP"),
         ]
         ]
@@ -59,7 +59,7 @@ class BUTTONS(object):
             InlineKeyboardButton("˹ υᴘᴅᴧᴛєs ˼", url="https://t.me/Shona_bots"),
         ],
         [  
-            InlineKeyboardButton("˹ ᴘʀɪᴠᴧᴄʏ ˼", url="https://telegra.ph/Privacy-Policy--Purvi-Bots-by-ALPHA-BABY-08-06"),
+            InlineKeyboardButton("˹ ᴘʀɪᴠᴧᴄʏ ˼", url="https://telegra.ph/ANONYMOUS---SHONA-BOTS-03-14"),
             InlineKeyboardButton("⌯ ʙᴧᴄᴋ ⌯", callback_data="settingsback_helper"),
         ]
         ]
