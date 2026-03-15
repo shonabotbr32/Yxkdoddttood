@@ -41,7 +41,7 @@ async def download_song(link: str):
             #print(f"File already exists: {file_path}")
             return file_path
         
-    song_url = f"{YTPROXY_URL}/song/{video_id}?api={YT_API_KEY}"
+    song_url = f"{YTPROXY}/song/{video_id}?api={YT_API_KEY}"
     async with aiohttp.ClientSession() as session:
         for attempt in range(10):
             try:
@@ -103,7 +103,7 @@ async def download_video(link: str):
         if os.path.exists(file_path):
             return file_path
         
-    video_url = f"{YTPROXY_URL}/video/{video_id}?api={YT_API_KEY}"
+    video_url = f"{YTPROXY}/video/{video_id}?api={YT_API_KEY}"
     async with aiohttp.ClientSession() as session:
         for attempt in range(10):
             try:
