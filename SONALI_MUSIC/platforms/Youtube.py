@@ -6,7 +6,7 @@ import aiohttp
 import yt_dlp
 from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
-from py_yt import VideosSearch
+from youtubesearchpython.__future__ import VideosSearch
 from typing import Union
 from config import YT_API_KEY, YTPROXY_URL as YTPROXY
 
