@@ -43,9 +43,9 @@ GIT_TOKEN = getenv("GIT_TOKEN", "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")
 
 LOGGER_ID = int(getenv("LOGGER_ID", -1002141133985))
 
-PRIVACY_LINK = getenv("PRIVACY_LINK", "https://github.com/harshkingxmdb/SHONABOTS")
+PRIVACY_LINK = getenv("PRIVACY_LINK", "https://telegra.ph/ANONYMOUS---SHONA-BOTS-03-14")
 SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/shona_bots")
-SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/+JnaP3qtVK2JhZDAx")
+SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/SHONA_SUPPORT")
 
 # -------------------- [ LIMITS & TIME SETTINGS ] --------------------
 
