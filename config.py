@@ -15,7 +15,7 @@ BOT_TOKEN = getenv("BOT_TOKEN")
 
 
 YTPROXY_URL = getenv("YTPROXY_URL", 'https://tgapi.xbitcode.com') ## xBit Music Endpoint.
-YT_API_KEY = getenv("YT_API_KEY" , 'none' ) ## Your API key like: xbit_10000000xx0233 Get from  https://t.me/tgmusic_apibot
+YT_API_KEY = getenv("YT_API_KEY" , 'xbit_XO5yn5T9QLUik0Td9628mmrfM-xpNSTi' ) ## Your API key like: xbit_10000000xx0233 Get from  https://t.me/tgmusic_apibot
 
 
 # -------------------- [ OWNER & BOT INFO ] --------------------
