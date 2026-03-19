@@ -1,5 +1,4 @@
 import asyncio
-import os
 import re
 from typing import Union
 
@@ -26,7 +25,7 @@ class YouTubeAPI:
             if self.is_url(query):
                 return await self.get_from_url(query)
 
-            # 🔍 search handle
+            # 🔍 Search
             results = VideosSearch(query, limit=1)
             data = (await results.next())["result"][0]
 
@@ -66,9 +65,26 @@ class YouTubeAPI:
     async def video(self, link: str):
         def get_stream():
             try:
-                with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
+                ydl_opts = {
+                    "format": "bestaudio/best",  # 🔥 MOST IMPORTANT
+                    "quiet": True,
+                    "noplaylist": True,
+                }
+
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(link, download=False)
-                    return info.get("url")
+
+                    # direct url
+                    if "url" in info:
+                        return info["url"]
+
+                    # fallback
+                    for f in info.get("formats", []):
+                        if f.get("acodec") != "none":
+                            return f.get("url")
+
+                    return None
+
             except Exception as e:
                 logger.error(f"Stream error: {e}")
                 return None
@@ -79,12 +95,7 @@ class YouTubeAPI:
             return 1, url
         return 0, "Failed"
 
-    async def download(
-        self,
-        link: str,
-        mystic=None,
-        video: Union[bool, str] = False,
-    ):
+    async def download(self, link: str, video: Union[bool, str] = False):
         if not self.is_url(link):
             link = self.base + link
 
@@ -119,14 +130,3 @@ class YouTubeAPI:
                 return None
 
         return await asyncio.to_thread(_download)
-
-    async def playlist(self, link, limit=10):
-        try:
-            results = VideosSearch(link, limit=limit)
-            data = (await results.next())["result"]
-
-            return [video["id"] for video in data]
-
-        except Exception as e:
-            logger.error(f"Playlist error: {e}")
-            return []
