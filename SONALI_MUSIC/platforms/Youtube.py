@@ -3,6 +3,10 @@ import re
 import yt_dlp
 from py_yt import VideosSearch
 
+from SONALI_MUSIC import LOGGER
+
+logger = LOGGER(__name__)
+
 
 class YouTubeAPI:
     def __init__(self):
@@ -12,19 +16,22 @@ class YouTubeAPI:
     def is_url(self, text: str):
         return re.search(self.regex, text)
 
-    # 🔥 GET URL FROM MESSAGE
+    # ✅ URL extract from message
     async def url(self, message):
-        if message.text:
-            parts = message.text.split()
-            if len(parts) > 1:
-                return parts[1]
+        try:
+            if message.text:
+                parts = message.text.split()
+                if len(parts) > 1:
+                    return parts[1]
+        except Exception as e:
+            logger.error(f"url error: {e}")
         return None
 
-    # 🔥 CHECK VALID URL
+    # ✅ URL check
     async def exists(self, url: str):
         return True if url else False
 
-    # 🔍 SEARCH / TRACK
+    # ✅ Search / Track
     async def track(self, query, videoid=False):
         try:
             if videoid:
@@ -37,7 +44,11 @@ class YouTubeAPI:
                 url = self.base + data["id"]
 
             def extract():
-                with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
+                ydl_opts = {
+                    "quiet": True,
+                    "format": "bestaudio/best",
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     return ydl.extract_info(url, download=False)
 
             info = await asyncio.to_thread(extract)
@@ -47,30 +58,48 @@ class YouTubeAPI:
                 "duration_min": self.sec_to_min(info.get("duration")),
                 "thumb": info.get("thumbnail"),
                 "id": info.get("id"),
+                "url": url,
             }
 
             return details, info.get("id")
 
-        except:
+        except Exception as e:
+            logger.error(f"track error: {e}")
             return None, None
 
-    # 🔥 PLAYLIST (basic)
+    # ✅ Playlist (basic)
     async def playlist(self, query, limit=10, user_id=None):
-        results = VideosSearch(query, limit=limit)
-        data = (await results.next())["result"]
-        return [video["id"] for video in data]
+        try:
+            results = VideosSearch(query, limit=limit)
+            data = (await results.next())["result"]
+            return [video["id"] for video in data]
+        except Exception as e:
+            logger.error(f"playlist error: {e}")
+            return []
 
-    # 🔥 STREAM LINK
+    # ✅ Stream URL (MOST IMPORTANT)
     async def video(self, link: str):
         def get_stream():
-            with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
-                info = ydl.extract_info(link, download=False)
-                return info.get("url")
+            try:
+                ydl_opts = {
+                    "quiet": True,
+                    "format": "bestaudio/best",
+                    "noplaylist": True,
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(link, download=False)
+                    return info.get("url")
+            except Exception as e:
+                logger.error(f"stream error: {e}")
+                return None
 
         url = await asyncio.to_thread(get_stream)
-        return (1, url) if url else (0, None)
 
-    # 🔧 HELPER
+        if url:
+            return 1, url
+        return 0, None
+
+    # ✅ helper
     def sec_to_min(self, seconds):
         if not seconds:
             return "Live"
