@@ -145,7 +145,7 @@ async def greet_new_member(_, member: ChatMemberUpdated):
                 user.photo.big_file_id, file_name=f"pp{user.id}.png"
             )
         except:
-            pic = "IstkharMusic/assets/upic.png"
+            pic = "SONALI_MUSIC/assets/upic.png"
 
         old = temp.MELCOW.get(f"welcome-{chat_id}")
         if old:
